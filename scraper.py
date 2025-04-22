@@ -1,5 +1,18 @@
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup
+from collections import Counter
+
+
+#i took from the is_valid function and put the list of skipped words in a list, might reuse to check other functions later
+skipped_words = [".css", ".js", ".bmp", ".gif", ".jpg", ".jpeg", ".ico",
+    ".png", ".tif", ".tiff", ".mid", ".mp2", ".mp3", ".mp4",
+    ".wav", ".avi", ".mov", ".mpeg", ".ram", ".m4v", ".mkv", ".ogg", ".ogv", ".pdf",
+    ".ps", ".eps", ".tex", ".ppt", ".pptx", ".doc", ".docx", ".xls", ".xlsx",
+    ".names", ".data", ".dat", ".exe", ".bz2", ".tar", ".msi", ".bin", ".7z",
+    ".psd", ".dmg", ".iso", ".epub", ".dll", ".cnf", ".tgz", ".sha1", ".thmx",
+    ".mso", ".arff", ".rtf", ".jar", ".csv", ".rm", ".smil", ".wmv", ".swf",
+    ".wma", ".zip", ".rar", ".gz"]
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -25,16 +38,46 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+        #above is given
+        #check if the domain is uci.edu or uci.edu, check if it's ics, cs, informatics, or stat
+        # and check if the path does not end with any of the skipped words
+        if not re.match(r".*\.(ics|cs|informatics|stat)\.uci\.edu.*", parsed.netloc):
+            return False
+        
+        if any(parsed.path.lower().endswith(extension) for extension in skipped_words):
+            return False
+        return True
 
     except TypeError:
-        print ("TypeError for ", parsed)
-        raise
+        print ("TypeError for URL", parsed)
+        return False
+        # raise
+
+
+            # return not re.match(
+        #     r".*\.(css|js|bmp|gif|jpe?g|ico"
+        #     + r"|png|tiff?|mid|mp2|mp3|mp4"
+        #     + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+        #     + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+        #     + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
+        #     + r"|epub|dll|cnf|tgz|sha1"
+        #     + r"|thmx|mso|arff|rtf|jar|csv"
+        #     + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+
+#below are some potential functions I think we can implement?
+
+def bad_context_url(url, resp):
+    pass
+
+def duplicate_url(url, resp):
+    pass
+
+def get_links(url, resp):
+    pass
+
+
+def update_links_content(url, resp):
+    pass
+
+def save_content_to_text():
+    pass
