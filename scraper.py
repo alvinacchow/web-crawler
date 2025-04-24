@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import *
 from bs4 import BeautifulSoup
 from collections import Counter
 
@@ -19,6 +19,22 @@ def scraper(url, resp):
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
+
+    links = []
+    try:
+        if resp.status != 200 or resp.raw_response is None:
+            return links
+        
+        soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+        for x in soup.find_all('a', href=True):
+            href = x['href']
+            newurl = urljoin(url, href)
+            finalurl, _ = urldefrag(newurl)
+            links.append(finalurl)
+    except Exception as e:
+        print(f"Error extracting links: {e}")
+    
+    return links
     # Implementation required.
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
@@ -28,7 +44,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
