@@ -34,6 +34,9 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
     "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you",
     "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"]
 
+num_unique_pages = 0
+list_unique_pages = []
+
 def scraper(url, resp):
     
 
@@ -44,6 +47,10 @@ def scraper(url, resp):
     print(print_common_words)
 
     links = extract_next_links(url, resp)
+
+    # checks if this is a unique page
+    check_unique_pages(url)
+
     return [link for link in links if is_valid(link)]
 
 
@@ -132,3 +139,23 @@ def longest_page(url, word_count):
     requirements on the instruction page on canvas
     """
     pass
+
+
+# COUNTING NUMBER OF UNIQUE PAGES 
+def check_unique_pages(url):
+    # removes the fragment part of url
+    link = discard_fragment(url) 
+
+    # if its not in our list, add to our list
+    if link not in list_unique_pages:
+        list_unique_pages.append(link)
+
+def discard_fragment(url):
+    pound_sign = text.find('#')
+    if index != -1:
+        return url[:pound_sign]
+    return url
+
+def return_num_unique_pages(list_of_pages):
+    return len(list_of_pages)
+# COUNTING NUMBER OF UNIQUE PAGES 
