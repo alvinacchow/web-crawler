@@ -41,8 +41,6 @@ def scraper(url, resp):
         most_common_wordsearch(resp.raw_response.content)
 
 
-    print(print_common_words)
-
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
@@ -109,21 +107,19 @@ def crawl_pages_checker(url, resp):
 
 # THIS SECTION IS FOR THE TOP 50 WORDS
 def most_common_wordsearch(html_content):
-    words_counts = common_words_counter(html_content)
-    #i called the common_words_counter at the top
-    common_words_counter.update(words_counts)
+    word_counts = get_common_words(html_content)
+    common_words_counter.update(word_counts)
 
-def common_words_counter(html_content):
+def get_common_words(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = soup.get_text()
     words = re.findall(r'\b\w+\b', text.lower())
     filtered_words = [word for word in words if word not in list_of_stopwords]
-    return Counter(filtered_words).most_common(50)
+    return Counter(filtered_words)
 
-def print_common_words(html_content):
+def print_common_words():
     with open('common_words.txt', 'w') as f:
-        common = common_words_counter(html_content)
-        for word, count in common:
+        for word, count in common_words_counter.most_common(50):
             f.write(f"{word}: {count}\n")
 
 def longest_page(url, word_count):
@@ -132,3 +128,56 @@ def longest_page(url, word_count):
     requirements on the instruction page on canvas
     """
     pass
+
+
+# COUNTING NUMBER OF UNIQUE PAGES 
+def check_unique_pages(url):
+    # removes the fragment part of url
+    link = discard_fragment(url) 
+
+    # if its not in our list, add to our list
+    if link not in list_unique_pages:
+        list_unique_pages.append(link)
+
+def discard_fragment(url):
+    pound_sign = text.find('#')
+    if index != -1:
+        return url[:pound_sign]
+    return url
+
+def return_num_unique_pages(list_of_pages):
+    return len(list_of_pages)
+# COUNTING NUMBER OF UNIQUE PAGES 
+
+
+# UCI.EDU DOMAIN
+def count_pages_per_subdomain(list_of_pages):
+    subdomain_counter = defaultdict(int)
+
+    for url in pages:
+        parsed = urlparse(url)
+        subdomain = parsed.netloc.lower()  # get the subdomain 
+        
+        # make sure to only include subdomains under uci.edu
+        if subdomain.endswith(".uci.edu"): 
+            subdomain_counter[subdomain] += 1
+    return subdomain_counter
+
+def print_subdomains(subdomain_counter):
+    with open('subdomains.txt', 'w') as f:
+        for subdomain in sorted(subdomain_counter.keys()):
+            # writes into file ( we can get rid of this if its unnecessary LOL)
+            f.write(f"{subdomain}, {subdomain_counter[subdomain]}\n") 
+            print(f"{subdomain}, {subdomain_counter[subdomain]}")  # also print to console
+# UCI.EDU DOMAIN
+
+
+# CALL WHEN TESTING FUNCTIONS (AFTER DONE CRAWLING)
+'''
+return_num_unique_pages(list_unique_pages)
+
+subdomain_count = count_pages_per_subdomain(list_unique_pages)
+print_subdomains(subdomain_count)
+
+
+'''
