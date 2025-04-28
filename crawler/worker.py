@@ -17,8 +17,11 @@ class Worker(Thread):
         assert {getsource(scraper).find(req) for req in {"from urllib.request import", "import urllib.request"}} == {-1}, "Do not use urllib.request in scraper.py"
         super().__init__(daemon=True)
         
+
     def run(self):
-        while True:
+        #while True:
+        i = 0
+        while i < 10:
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
@@ -32,3 +35,11 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
             time.sleep(self.config.time_delay)
+
+            
+            i += 1
+
+        # REPORT OUTPUT
+        print("UNIQUE PAGES: ", scraper.return_num_unique_pages(scraper.list_unique_pages))
+        subdomain_count = scraper.count_pages_per_subdomain(scraper.list_unique_pages)
+        scraper.print_subdomains(subdomain_count)

@@ -2,6 +2,7 @@ import re
 from urllib.parse import *
 from bs4 import BeautifulSoup
 from collections import Counter
+from collections import defaultdict
 
 
 common_words_counter = Counter()
@@ -34,6 +35,9 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
     "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you",
     "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"]
 
+
+list_unique_pages = []
+
 def scraper(url, resp):
     
 
@@ -42,6 +46,8 @@ def scraper(url, resp):
 
 
     links = extract_next_links(url, resp)
+
+    list_unique_pages = check_unique_pages(url)
     return [link for link in links if is_valid(link)]
 
 
@@ -140,8 +146,8 @@ def check_unique_pages(url):
         list_unique_pages.append(link)
 
 def discard_fragment(url):
-    pound_sign = text.find('#')
-    if index != -1:
+    pound_sign = url.find('#')
+    if pound_sign != -1:
         return url[:pound_sign]
     return url
 
@@ -154,7 +160,7 @@ def return_num_unique_pages(list_of_pages):
 def count_pages_per_subdomain(list_of_pages):
     subdomain_counter = defaultdict(int)
 
-    for url in pages:
+    for url in list_of_pages:
         parsed = urlparse(url)
         subdomain = parsed.netloc.lower()  # get the subdomain 
         
