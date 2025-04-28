@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from argparse import ArgumentParser
 
+from scraper import print_and_save_top_50_words, common_words_counter 
 from utils.server_registration import get_cache_server
 from utils.config import Config
 from crawler import Crawler
@@ -13,6 +14,7 @@ def main(config_file, restart):
     config.cache_server = get_cache_server(config, restart)
     crawler = Crawler(config, restart)
     crawler.start()
+    print_and_save_top_50_words()
 
 
 if __name__ == "__main__":
@@ -21,3 +23,5 @@ if __name__ == "__main__":
     parser.add_argument("--config_file", type=str, default="config.ini")
     args = parser.parse_args()
     main(args.config_file, args.restart)
+    
+

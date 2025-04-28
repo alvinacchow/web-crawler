@@ -34,23 +34,21 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
     "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you",
     "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"]
 
+longest = ("", 0)
+
 def scraper(url, resp):
-    
+    global longest
+    global common_words_counter
 
     if resp.status == 200 or resp.raw_response:
         most_common_wordsearch(resp.raw_response.content)
-
-
-    print(print_common_words)
+        longest = update_longest_page(url, resp.raw_response.content, longest)
 
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
 
 
-
-
 def extract_next_links(url, resp):
-
     links = []
     try:
         if resp.status != 200 or resp.raw_response is None:
@@ -109,26 +107,41 @@ def crawl_pages_checker(url, resp):
 
 # THIS SECTION IS FOR THE TOP 50 WORDS
 def most_common_wordsearch(html_content):
-    words_counts = common_words_counter(html_content)
-    #i called the common_words_counter at the top
+    global common_words_counter
+    words_counts = count_words(html_content)
+    print(f"Adding {len(words_counts)} unique words to counter")
     common_words_counter.update(words_counts)
-
-def common_words_counter(html_content):
+  
+def count_words(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = soup.get_text()
     words = re.findall(r'\b\w+\b', text.lower())
     filtered_words = [word for word in words if word not in list_of_stopwords]
-    return Counter(filtered_words).most_common(50)
+    return Counter(filtered_words)
 
-def print_common_words(html_content):
+def print_and_save_top_50_words():
+    global common_words_counter
+    top_50 = common_words_counter.most_common(50)
+    print("reached top 50")
+    print(top_50)
     with open('common_words.txt', 'w') as f:
-        common = common_words_counter(html_content)
-        for word, count in common:
-            f.write(f"{word}: {count}\n")
+        for word, count in top_50:
+            line = f"{word}: {count}"
+            print(line)
+            f.write(line + '\n')
 
-def longest_page(url, word_count):
+
+# THIS SECTION IS FOR LONGEST PAGE
+def update_longest_page(url, html_content, current):
     """
     Check if the page is the longest page. Call it in the scraper? This is based on the behavior 
     requirements on the instruction page on canvas
     """
-    pass
+    soup = BeautifulSoup(html_content, 'html.parser')
+    text = soup.get_text()
+    words = re.findall(r'\b\w+\b', text.lower())
+    word_count = len(words)
+    
+    if word_count > current[1]: 
+        return (url, word_count)
+    return (url, current)
