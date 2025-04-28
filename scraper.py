@@ -34,7 +34,6 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
     "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you",
     "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"]
 
-num_unique_pages = 0
 list_unique_pages = []
 
 def scraper(url, resp):
@@ -159,3 +158,36 @@ def discard_fragment(url):
 def return_num_unique_pages(list_of_pages):
     return len(list_of_pages)
 # COUNTING NUMBER OF UNIQUE PAGES 
+
+
+# UCI.EDU DOMAIN
+def count_pages_per_subdomain(list_of_pages):
+    subdomain_counter = defaultdict(int)
+
+    for url in pages:
+        parsed = urlparse(url)
+        subdomain = parsed.netloc.lower()  # get the subdomain 
+        
+        # make sure to only include subdomains under uci.edu
+        if subdomain.endswith(".uci.edu"): 
+            subdomain_counter[subdomain] += 1
+    return subdomain_counter
+
+def print_subdomains(subdomain_counter):
+    with open('subdomains.txt', 'w') as f:
+        for subdomain in sorted(subdomain_counter.keys()):
+            # writes into file ( we can get rid of this if its unnecessary LOL)
+            f.write(f"{subdomain}, {subdomain_counter[subdomain]}\n") 
+            print(f"{subdomain}, {subdomain_counter[subdomain]}")  # also print to console
+# UCI.EDU DOMAIN
+
+
+# CALL WHEN TESTING FUNCTIONS (AFTER DONE CRAWLING)
+'''
+return_num_unique_pages(list_unique_pages)
+
+subdomain_count = count_pages_per_subdomain(list_unique_pages)
+print_subdomains(subdomain_count)
+
+
+'''
