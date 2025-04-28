@@ -37,13 +37,15 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
 
 
 list_unique_pages = []
+longest_page = ("", 0)
 
 def scraper(url, resp):
     
-
+    global longest_page
     if resp.status == 200 or resp.raw_response:
-        most_common_wordsearch(resp.raw_response.content)
 
+        most_common_wordsearch(resp.raw_response.content)
+        longest_page = update_longest_page(url, resp.raw_response.content, longest_page)
 
     links = extract_next_links(url, resp)
 
@@ -128,12 +130,25 @@ def print_common_words():
         for word, count in common_words_counter.most_common(50):
             f.write(f"{word}: {count}\n")
 
-def longest_page(url, word_count):
+# THIS SECTION IS FOR LONGEST PAGE
+def update_longest_page(url, html_content, current):
     """
     Check if the page is the longest page. Call it in the scraper? This is based on the behavior 
     requirements on the instruction page on canvas
     """
-    pass
+    soup = BeautifulSoup(html_content, 'html.parser')
+    text = soup.get_text()
+    words = re.findall(r'\b\w+\b', text.lower())
+    word_count = len(words)
+    
+    if word_count > current[1]: 
+        return (url, word_count)
+    return current
+
+def print_longest_page(longest_page):
+    with open('longest.txt', 'w') as f: 
+        f.write(f"{longest_page[0]}, {longest_page[1]}\n") 
+        return (f"{longest_page[0]}, {longest_page[1]}\n")
 
 
 # COUNTING NUMBER OF UNIQUE PAGES 
