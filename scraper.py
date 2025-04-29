@@ -267,8 +267,11 @@ def discard_fragment(url):
     return url
 
 def return_num_unique_pages(list_of_pages):
-    f.write(f"{uniquePages}, {len(list_of_pages)}\n") 
-    return len(list_of_pages)
+    uniquePages = set(list_of_pages)
+    with open("unique_pages.txt", "a") as f:
+        f.write(f"{len(uniquePages)}, {len(list_of_pages)}\n")
+    return len(uniquePages)
+
 # COUNTING NUMBER OF UNIQUE PAGES 
 
 
@@ -316,14 +319,3 @@ def high_info_content(resp):
     
     wordcount = count_words_all(resp.raw_response.content)
     return wordcount >= 100
-
-
-# CALL WHEN TESTING FUNCTIONS (AFTER DONE CRAWLING)
-'''
-return_num_unique_pages(list_unique_pages)
-
-subdomain_count = count_pages_per_subdomain(list_unique_pages)
-print_subdomains(subdomain_count)
-
-
-'''
