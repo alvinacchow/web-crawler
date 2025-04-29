@@ -146,6 +146,7 @@ def discard_fragment(url):
     return url
 
 def return_num_unique_pages(list_of_pages):
+    f.write(f"{uniquePages}, {len(list_of_pages)}\n") 
     return len(list_of_pages)
 # COUNTING NUMBER OF UNIQUE PAGES 
 
