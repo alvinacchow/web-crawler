@@ -5,7 +5,6 @@ from collections import Counter
 from collections import defaultdict
 
 
-common_words_counter = Counter()
 
 skipped_words = [".css", ".js", ".bmp", ".gif", ".jpg", ".jpeg", ".ico",
     ".png", ".tif", ".tiff", ".mid", ".mp2", ".mp3", ".mp4",
@@ -35,7 +34,7 @@ list_of_stopwords = ["a", "about", "above", "after", "again", "against", "all", 
     "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you",
     "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"]
 
-
+common_words_counter = Counter()
 list_unique_pages = []
 longest_page = ("", 0)
 
@@ -51,8 +50,6 @@ def scraper(url, resp):
 
     list_unique_pages = check_unique_pages(url)
     return [link for link in links if is_valid(link)]
-
-
 
 
 def extract_next_links(url, resp):
@@ -72,8 +69,7 @@ def extract_next_links(url, resp):
         print(f"Error extracting links: {e}")
     
     return links
-
-    
+ 
 
 def is_valid(url):
     try:
@@ -95,24 +91,6 @@ def is_valid(url):
         return False
 
 
-#ok now im not sure if we should do this lol but we can try it out?
-def crawl_pages_checker(url, resp):
-    """
-    Check if the page is a valid page to crawl. Call it in the scraper? This is based on the behavior 
-    requirements on the instruction page on canvas
-    """
-    if trap_detected(url):
-        pass
-
-    if bad_url(resp):
-        pass
-    
-    if high_info_content(resp):
-        pass
-
-    if similar_no_info(url, resp.raw_response):
-        pass
-
 # THIS SECTION IS FOR THE TOP 50 WORDS
 def most_common_wordsearch(html_content):
     word_counts = get_common_words(html_content)
@@ -122,7 +100,7 @@ def get_common_words(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = soup.get_text()
     words = re.findall(r'\b\w+\b', text.lower())
-    filtered_words = [word for word in words if word not in list_of_stopwords]
+    filtered_words = [word for word in words if word not in list_of_stopwords and len(word) > 2 and word.isalpha() and not word.isdigit()]
     return Counter(filtered_words)
 
 def print_common_words():

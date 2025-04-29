@@ -20,8 +20,7 @@ class Worker(Thread):
 
     def run(self):
         while True:
-        # i = 0
-        # while i < 100: 
+
             tbd_url = self.frontier.get_tbd_url()
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
@@ -35,14 +34,16 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
             time.sleep(self.config.time_delay)
-            # i += 1
+
 
             
-    
 
-        # REPORT OUTPUT
+        # REPORT OUTPUTS
         print("UNIQUE PAGES: ", scraper.return_num_unique_pages(scraper.list_unique_pages))
+
         subdomain_count = scraper.count_pages_per_subdomain(scraper.list_unique_pages)
-        scraper.print_subdomains(subdomain_count)
+        print("SUBDOMAIN COUNT: ", scraper.print_subdomains(subdomain_count))
 
         print("LONGEST URL: ", scraper.print_longest_page(scraper.longest_page))
+
+        print("COMMON WORDS: ", scraper.print_common_words())
