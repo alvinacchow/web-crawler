@@ -63,8 +63,10 @@ TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|search|print|share|tag
 
 def scraper(url, resp):
     global longest_page
+    if not high_info_content(resp) or dead_url(resp):
+        return []
+    
     if resp.status == 200 or resp.raw_response:
-
         most_common_wordsearch(resp.raw_response.content)
         longest_page = update_longest_page(url, resp.raw_response.content, longest_page)
 
@@ -290,6 +292,30 @@ def print_subdomains(subdomain_counter):
             f.write(f"{subdomain}, {subdomain_counter[subdomain]}\n") 
             print(f"{subdomain}, {subdomain_counter[subdomain]}")  # also print to console
 # UCI.EDU DOMAIN
+
+def dead_url(resp):
+    if resp.status == 200:
+        if resp.raw_response:
+
+            #if theres nothing in the content, this is DEAD
+            if len(resp.raw_response.content) == 0:
+                return True
+        else:
+            return True
+    return False 
+
+def count_words_all(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    text = soup.get_text()
+    words = re.findall(r'\b\w+\b', text.lower())
+    return len(words)
+
+def high_info_content(resp):
+    if not resp.raw_response:
+        return False
+    
+    wordcount = count_words_all(resp.raw_response.content)
+    return wordcount >= 100
 
 
 # CALL WHEN TESTING FUNCTIONS (AFTER DONE CRAWLING)
