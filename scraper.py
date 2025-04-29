@@ -117,7 +117,8 @@ def update_longest_page(url, html_content, current):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = soup.get_text()
     words = re.findall(r'\b\w+\b', text.lower())
-    word_count = len(words)
+    filtered_words = [word for word in words if word not in list_of_stopwords and len(word) > 2 and word.isalpha() and not word.isdigit()]
+    word_count = len(filtered_words)
     
     if word_count > current[1]: 
         return (url, word_count)
