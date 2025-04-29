@@ -1,3 +1,4 @@
+import hashlib
 import re
 from urllib.parse import *
 from bs4 import BeautifulSoup
@@ -38,22 +39,46 @@ common_words_counter = Counter()
 list_unique_pages = []
 longest_page = ("", 0)
 
+# TRAP DETECTION GLOBALS 
+content_hashes = set()               
+urls_per_path_segment = defaultdict(int) 
+path_patterns = defaultdict(int) 
+domain_visit_count = defaultdict(int)
+path_visit_count = defaultdict(int)   
+visited_params = defaultdict(set)   
+domain_last_accessed = {}      
+
+# TRAP DETECTION CONSTANTS
+MAX_URL_LENGTH = 200             
+MAX_PATH_SEGMENTS = 8           
+MAX_QUERY_PARAMS = 5             
+MAX_URLS_PER_PATH_SEGMENT = 50 
+MAX_PATTERN_COUNT = 10
+MAX_DOMAIN_VISITS = 1000 
+CALENDAR_PATTERN = re.compile(r'/(202\d|19\d\d)/(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])')
+PAGINATION_PATTERN = re.compile(r'page=\d+|p=\d+|pg=\d+|start=\d+|offset=\d+')
+SESSION_PATTERN = re.compile(r'session(id)?=|sid=|s=\w{32}')
+TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|search|print|share|tag|rss|feed|cgi-bin)/')
+
+
 def scraper(url, resp):
-    
     global longest_page
     if resp.status == 200 or resp.raw_response:
 
         most_common_wordsearch(resp.raw_response.content)
         longest_page = update_longest_page(url, resp.raw_response.content, longest_page)
 
+        if is_duplicate_content(resp.raw_response.content):
+            return []
+    else: 
+        return []
+    
     links = extract_next_links(url, resp)
-
-    list_unique_pages = check_unique_pages(url)
+    check_unique_pages(url)
     return [link for link in links if is_valid(link)]
 
 
 def extract_next_links(url, resp):
-
     links = []
     try:
         if resp.status != 200 or resp.raw_response is None:
@@ -84,10 +109,104 @@ def is_valid(url):
         
         if any(parsed.path.lower().endswith(extension) for extension in skipped_words):
             return False
+        
+        if is_trap(url, parsed): 
+            return False
+        
         return True
 
     except TypeError:
         print ("TypeError for URL", parsed)
+        return False
+    
+def is_trap(url, parsed) -> bool:
+    # Check URL length
+    if len(url) > MAX_URL_LENGTH:
+        # print("trap 1")
+        return True
+    
+    # Check domain visit count
+    domain = parsed.netloc.lower()
+    if domain_visit_count[domain] > MAX_DOMAIN_VISITS:
+        # print("trap 2")
+        return True
+    
+    # Check path segments
+    path = parsed.path
+    path_segments = [s for s in path.split('/') if s]
+    # Check for excessive path depth
+    if len(path_segments) > MAX_PATH_SEGMENTS:
+        # print("trap 3")
+        return True
+    
+    # Check for calendar patterns
+    if CALENDAR_PATTERN.search(path):
+        # print("trap 4")
+        return True
+    
+    # Check for known problematic paths
+    if TRAP_PATHS.search(path):
+        # print("trap 5")
+        return True
+    
+    # Check for session IDs 
+    if SESSION_PATTERN.search(url):
+        # print("trap 6")
+        return True
+    
+    # Check query parameters
+    if parsed.query:
+        query_params = parsed.query.split('&')
+        
+        # Too many query parameters
+        if len(query_params) > MAX_QUERY_PARAMS:
+            # print("trap 7")
+            return True
+    
+    # Check for repeated path patterns
+    if path_segments:
+        # Create a simplified pattern from the path
+        path_pattern = '-'.join([p.split('-')[0] if '-' in p else p for p in path_segments])
+        
+        if path_pattern:
+            path_patterns[path_pattern] += 1
+            if path_patterns[path_pattern] > MAX_PATTERN_COUNT:
+                # print("trap 8")
+                return True
+    
+    # Check for too many URLs with same segment count
+    segment_count = len(path_segments)
+    if segment_count > 2: 
+        urls_per_path_segment[segment_count] += 1
+        if urls_per_path_segment[segment_count] > MAX_URLS_PER_PATH_SEGMENT:
+            # print("trap 9")
+            return True
+    
+    # Check specific path count
+    path_key = '/'.join(path_segments)
+    if path_key:
+        path_visit_count[path_key] += 1
+        if path_visit_count[path_key] > 5: 
+            # print("trap 10")
+            return True
+    
+    return False
+
+def is_duplicate_content(content):
+    try:
+        soup = BeautifulSoup(content, 'html.parser')
+        text_content = soup.get_text()
+    
+        content_hash = hashlib.md5(text_content.encode('utf-8')).hexdigest()
+        
+        if content_hash in content_hashes:
+            return True
+        
+        content_hashes.add(content_hash)
+        return False
+    
+    except Exception as e:
+        print(f"Error checking duplicate content: {e}")
         return False
 
 
