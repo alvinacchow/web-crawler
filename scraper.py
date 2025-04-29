@@ -228,6 +228,7 @@ def print_common_words():
     with open('common_words.txt', 'w') as f:
         for word, count in common_words_counter.most_common(50):
             f.write(f"{word}: {count}\n")
+            print (f"{word}, {count}\n")
 
 # THIS SECTION IS FOR LONGEST PAGE
 def update_longest_page(url, html_content, current):
@@ -319,3 +320,5 @@ def high_info_content(resp):
     
     wordcount = count_words_all(resp.raw_response.content)
     return wordcount >= 100
+
+
