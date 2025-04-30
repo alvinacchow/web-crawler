@@ -25,6 +25,11 @@ class Worker(Thread):
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
             resp = download(tbd_url, self.config, self.logger)
+            if resp.status is None or resp.status >= 400:
+                self.logger.warning(f"Dead link: {tbd_url} (status {resp.status})")
+                self.frontier.mark_url_complete(tbd_url)
+                continue
+                
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")

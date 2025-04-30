@@ -63,6 +63,7 @@ TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|search|print|share|tag
 
 def scraper(url, resp):
     global longest_page
+
     if not high_info_content(resp) or dead_url(resp):
         return []
     
@@ -300,7 +301,6 @@ def print_subdomains(subdomain_counter):
 def dead_url(resp):
     if resp.status == 200:
         if resp.raw_response:
-
             #if theres nothing in the content, this is DEAD
             if len(resp.raw_response.content) == 0:
                 return True
