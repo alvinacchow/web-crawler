@@ -49,16 +49,16 @@ visited_params = defaultdict(set)
 domain_last_accessed = {}      
 
 # TRAP DETECTION CONSTANTS
-MAX_URL_LENGTH = 200             
-MAX_PATH_SEGMENTS = 8           
-MAX_QUERY_PARAMS = 5             
-MAX_URLS_PER_PATH_SEGMENT = 50 
-MAX_PATTERN_COUNT = 10
-MAX_DOMAIN_VISITS = 1000 
+MAX_URL_LENGTH = 500             
+MAX_PATH_SEGMENTS = 25           
+MAX_QUERY_PARAMS = 30             
+MAX_URLS_PER_PATH_SEGMENT = 200
+MAX_PATTERN_COUNT = 100
+MAX_DOMAIN_VISITS = 10000
 CALENDAR_PATTERN = re.compile(r'/(202\d|19\d\d)/(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])')
 PAGINATION_PATTERN = re.compile(r'page=\d+|p=\d+|pg=\d+|start=\d+|offset=\d+')
 SESSION_PATTERN = re.compile(r'session(id)?=|sid=|s=\w{32}')
-TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|search|print|share|tag|rss|feed|cgi-bin)/')
+TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|cgi-bin)/')
 
 
 def scraper(url, resp):
