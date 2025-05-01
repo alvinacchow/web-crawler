@@ -121,7 +121,8 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for URL", parsed)
         return False
-    
+
+'''   
 def is_trap(url, parsed) -> bool:
     # Check URL length
     if len(url) > MAX_URL_LENGTH:
@@ -194,6 +195,107 @@ def is_trap(url, parsed) -> bool:
             return True
     
     return False
+'''
+
+def is_trap(url, parsed, config=None) -> bool:
+    # Default config values
+    default_config = {
+        "max_url_length": 2048,
+        "max_domain_visits": 10000,
+        "max_path_segments": 10,
+        "max_query_params": 10,
+        "max_pattern_count": 50,
+        "max_urls_per_path_segment": 1000,
+        "max_path_visits": 10,
+        "max_short_segment_ratio": 0.6,
+        "max_numeric_segment_ratio": 0.8
+    }
+
+    if config is None:
+        config = default_config
+    else:
+        config = {**default_config, **config}  # merge with overrides
+
+    domain = parsed.netloc.lower()
+    path = parsed.path
+    path_segments = [s for s in path.split('/') if s]
+    segment_count = len(path_segments)
+    query_params = parsed.query.split('&') if parsed.query else []
+
+    # check url length
+    if len(url) > config["max_url_length"]:
+        # print("trap: URL too long")
+        return True
+
+    # 2. check domain visit count
+    if domain_visit_count[domain] > config["max_domain_visits"]:
+        # print("trap: domain visit count exceeded")
+        return True
+
+    # 3. check path depth
+    if segment_count > config["max_path_segments"]:
+        # print("trap: too many path segments")
+        return True
+
+    # 4. calendar pattern
+    if CALENDAR_PATTERN.search(path):
+        # print("trap: calendar pattern")
+        return True
+
+    # 5. known trap paths
+    if TRAP_PATHS.search(path):
+        # print("trap: matched known trap path")
+        return True
+
+    # 6. session ID
+    if SESSION_PATTERN.search(url):
+        # print("trap: session ID in URL")
+        return True
+
+    # 7. too many query parameters
+    if len(query_params) > config["max_query_params"]:
+        # print("trap: too many query parameters")
+        return True
+
+    # 8. low-information path content
+    if segment_count > 0:
+        short_segments = [seg for seg in path_segments if len(seg) <= 2]
+        numeric_segments = [seg for seg in path_segments if seg.isdigit()]
+
+        short_ratio = len(short_segments) / segment_count
+        numeric_ratio = len(numeric_segments) / segment_count
+
+        if short_ratio > config["max_short_segment_ratio"] or \
+           numeric_ratio > config["max_numeric_segment_ratio"]:
+            # print("trap: low-information path")
+            return True
+
+    # 9. repeating path patterns
+    if path_segments:
+        path_pattern = '-'.join([p.split('-')[0] if '-' in p else p for p in path_segments])
+        if path_pattern:
+            path_patterns[path_pattern] += 1
+            if path_patterns[path_pattern] > config["max_pattern_count"]:
+                # print("trap: repeating path pattern")
+                return True
+
+    # 10. too many URLs with same segment count
+    if segment_count > 2:
+        urls_per_path_segment[segment_count] += 1
+        if urls_per_path_segment[segment_count] > config["max_urls_per_path_segment"]:
+            # print("trap: URL segment count overload")
+            return True
+
+    # 11. path repetition
+    path_key = '/'.join(path_segments)
+    if path_key:
+        path_visit_count[path_key] += 1
+        if path_visit_count[path_key] > config["max_path_visits"]:
+            # print("trap: path repetition limit exceeded")
+            return True
+
+    return False
+
 
 def is_duplicate_content(content):
     try:
