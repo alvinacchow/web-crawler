@@ -49,17 +49,15 @@ visited_params = defaultdict(set)
 domain_last_accessed = {}      
 
 # TRAP DETECTION CONSTANTS
-MAX_URL_LENGTH = 500             
+MAX_URL_LENGTH = 2000             
 MAX_PATH_SEGMENTS = 25           
-MAX_QUERY_PARAMS = 30             
+MAX_QUERY_PARAMS = 100             
 MAX_URLS_PER_PATH_SEGMENT = 200
-MAX_PATTERN_COUNT = 100
-MAX_DOMAIN_VISITS = 10000
-CALENDAR_PATTERN = re.compile(r'/(202\d|19\d\d)/(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])')
-PAGINATION_PATTERN = re.compile(r'page=\d+|p=\d+|pg=\d+|start=\d+|offset=\d+')
+MAX_DOMAIN_VISITS = 50000
+CALENDAR_PATTERN = re.compile(r'/(202\d|19\d\d)/(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])') #deprecated
+PAGINATION_PATTERN = re.compile(r'page=\d+|p=\d+|pg=\d+|start=\d+|offset=\d+') #deprecated
 SESSION_PATTERN = re.compile(r'session(id)?=|sid=|s=\w{32}')
-TRAP_PATHS = re.compile(r'/(calendar|login|logout|comment|cgi-bin)/')
-
+TRAP_PATHS = re.compile(r'/(calendar|login|comment)/')
 
 def scraper(url, resp):
     global longest_page
@@ -142,11 +140,6 @@ def is_trap(url, parsed) -> bool:
         # print("trap 3")
         return True
     
-    # Check for calendar patterns
-    if CALENDAR_PATTERN.search(path):
-        # print("trap 4")
-        return True
-    
     # Check for known problematic paths
     if TRAP_PATHS.search(path):
         # print("trap 5")
@@ -166,17 +159,6 @@ def is_trap(url, parsed) -> bool:
             # print("trap 7")
             return True
     
-    # Check for repeated path patterns
-    if path_segments:
-        # Create a simplified pattern from the path
-        path_pattern = '-'.join([p.split('-')[0] if '-' in p else p for p in path_segments])
-        
-        if path_pattern:
-            path_patterns[path_pattern] += 1
-            if path_patterns[path_pattern] > MAX_PATTERN_COUNT:
-                # print("trap 8")
-                return True
-    
     # Check for too many URLs with same segment count
     segment_count = len(path_segments)
     if segment_count > 2: 
@@ -189,7 +171,7 @@ def is_trap(url, parsed) -> bool:
     path_key = '/'.join(path_segments)
     if path_key:
         path_visit_count[path_key] += 1
-        if path_visit_count[path_key] > 5: 
+        if path_visit_count[path_key] > 50: 
             # print("trap 10")
             return True
     
