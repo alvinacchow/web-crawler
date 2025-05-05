@@ -105,10 +105,17 @@ def is_valid(url):
         
         #check if the domain is uci.edu or uci.edu, check if it's ics, cs, informatics, or stat
         # and check if the path does not end with any of the skipped words
+        '''
         if parsed.netloc == "today.uci.edu" and parsed.path.startswith("/department/information_computer_sciences"):
-            return True
+            pass
         elif not re.match(r".*\.(ics|cs|informatics|stat)\.uci\.edu.*", parsed.netloc):
             return False
+        '''
+
+        if not ((parsed.netloc == "today.uci.edu" and parsed.path.startswith("/department/information_computer_sciences"))
+            or re.match(r".*\.(ics|cs|informatics|stat)\.uci\.edu.*", parsed.netloc)):
+        return False
+
 
         if any(parsed.path.lower().endswith(extension) for extension in skipped_words):
             return False
